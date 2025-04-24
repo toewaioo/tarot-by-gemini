@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tarot Card Reader</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+      body {
+      font-family: 'Helvetica Neue', sans-serif;
+      background: #1a1a1a;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      }
+      .header {
+      margin-bottom: 40px;
+      text-align: center;
+      }
+      .header h1 {
+      font-size: 2.5em;
+      font-weight: 300;
+      color: #fff;
+      margin-bottom: 10px;
+      }
+      .question-container {
+      width: 100%;
+      max-width: 768px;
+      margin-bottom: 30px;
+      padding: 0 15px;
+      box-sizing: border-box;
+      }
+      .question-label {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 1.1em;
+      color: #9e9e9e;
+      }
+      #question {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 15px;
+      border: 1px solid #333;
+      border-radius: 8px;
+      background: #2a2a2a;
+      color: #fff;
+      font-size: 1.1em;
+      resize: vertical;
+      min-height: 60px;
+      margin-bottom: 20px;
+      font-family: inherit;
+      }
+      .card-container {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 2px;
+      padding: 20px 40px;
+      overflow-x: scroll;
+      width: 90%;
+      max-width: 800px;
+      min-height: 180px;
+      align-items: center;
+      background: rgba(42, 42, 42, 0.7);
+      border-radius: 20px;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      margin: 20px auto;
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+      cursor: grab;
+      overscroll-behavior-x: contain;
+      will-change: transform, scroll-position; /* Optimize scroll performance */
+      scroll-snap-type: x proximity; /* Improve scroll precision */
+      -webkit-overflow-scrolling: auto; /* Better performance than 'touch' */
+      }
+      .card-container:active {
+      cursor: grabbing;
+      }
+      .card-container::-webkit-scrollbar {
+      display: none;
+      }
+      .card {
+      width: 90px;
+      height: 140px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+      margin-left: -60px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      object-fit: cover;
+      filter: brightness(0.9);
+      border: 1px solid #333;
+      scroll-snap-align: start;
+      backface-visibility: hidden; /* Reduce repaint */
+      transform: translateZ(0); /* GPU acceleration */
+      }
+      .card:first-child {
+      margin-left: 0;
+      }
+      .card:hover {
+      transform: translateY(-20px) scale(1.15);
+      filter: brightness(1.1);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+      }
+      .selected-card {
+      max-width: 768px;
+      margin: 20px auto;
+      background: rgba(42, 42, 42, 0.9);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      }
+      .selected-card img {
+      border-radius: 15px;
+      margin-bottom: 20px;
+      }
+      .result-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      }
+      .card-image-container {
+      text-align: center;
+      }
+      .card-image-container img {
+      max-width: 300px;
+      height: auto;
+      border-radius: 15px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+      border: 1px solid #333;
+      }
+      .card-image-container .card-title {
+      font-size: 2em;
+      color: #fff;
+      margin-bottom: 20px;
+      }
+      .card-details {
+      text-align: left;
+      padding: 20px;
+      }
+      .card-details .question {
+      color: #9e9e9e;
+      font-size: 1.2em;
+      margin-bottom: 30px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #444;
+      }
+      @media (max-width: 768px) {
+      .result-grid {
+      grid-template-columns: 1fr;
+      }
+      }
+      @keyframes stackCards {
+      0% {
+      transform: translateX(0) rotate(0deg);
+      }
+      100% {
+      transform: translateX(50%) rotate(5deg);
+      }
+      }
+      @keyframes spreadCards {
+      0% {
+      transform: translateX(50%) rotate(5deg);
+      opacity: 0;
+      }
+      100% {
+      transform: translateX(0) rotate(0deg);
+      opacity: 1;
+      }
+      }
+      .stacking {
+      animation: stackCards 0.5s forwards;
+      }
+      .spreading {
+      animation: spreadCards 0.5s forwards;
+      }
+      .shuffle-button {
+      background: #4a4a4a;
+      color: #fff;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 25px;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      }
+      .shuffle-button:hover {
+      background: #666;
+      transform: translateY(-2px);
+      }
+      .option-container {
+      margin-bottom: 20px;
+      }
+      .reverse-option {
+      color: #9e9e9e;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      }
+      .reverse-option input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      }
+      .card.reversed {
+      transform: rotate(180deg);
+      }
+      .card.reversed:hover {
+      transform: translateY(-20px) scale(1.15) rotate(180deg);
+      }
+      .selected-card img.reversed {
+      transform: rotate(180deg);
+      }
+      /* Update existing card container for mobile */
+      .card-container {
+      width: calc(100% - 40px);
+      padding: 20px;
+      gap: 0;
+      min-height: 160px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      /* for smooth scrolling on iOS */
+      scroll-behavior: smooth;
+      position: relative;
+      /* Added for swipe hint positioning */
+      touch-action: pan-x; /* Only allow horizontal touch actions */
+      overflow-y: hidden; /* Prevent vertical scrolling */
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: none; /* Prevent bounce effect on vertical scroll */
+      
+      }
+      .card {
+      width: 80px;
+      height: 120px;
+      margin-left: -50px;
+      touch-action: pan-x; /* Only allow horizontal touch actions on cards */
+      user-select: none; /* Prevent text selection during touch */
+      -webkit-user-select: none;
+      }
+      /* Update media queries for mobile */
+      @media (max-width: 768px) {
+      body {
+      padding: 10px;
+      }
+      .header h1 {
+      font-size: 2em;
+      }
+      .question-container {
+      padding: 0 10px;
+      margin-bottom: 20px;
+      }
+      .question-label {
+      font-size: 1em;
+      }
+      #question {
+      padding: 12px;
+      font-size: 1em;
+      min-height: 50px;
+      }
+      .option-container {
+      padding: 0 10px;
+      margin-bottom: 15px;
+      }
+      .reverse-option {
+      font-size: 0.9em;
+      }
+      .card-container {
+      width: calc(100% - 20px);
+      padding: 15px;
+      min-height: 140px;
+      }
+      .result-grid {
+      grid-template-columns: 1fr;
+      gap: 15px;
+      }
+      .card-image-container img {
+      max-width: 200px;
+      }
+      .card-image-container .card-title {
+      font-size: 1.5em;
+      }
+      .card-details {
+      padding: 15px;
+      }
+      .card-details .question {
+      font-size: 1em;
+      }
+      /* Adjust card hover effect for touch devices */
+      .card:hover {
+      transform: translateY(-10px) scale(1.1);
+      }
+      .card.reversed:hover {
+      transform: translateY(-10px) scale(1.1) rotate(180deg);
+      }
+      /* Add touch scrolling hint */
+      .card-container::after {
+      content: '← Swipe →';
+      position: absolute;
+      bottom: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #666;
+      font-size: 0.9em;
+      white-space: nowrap;
+      width: 100%;
+      text-align: center;
+      pointer-events: none;
+      }
+      }
+      /* Add specific styles for very small screens */
+      @media (max-width: 380px) {
+      .question-container {
+      padding: 0 8px;
+      }
+      #question {
+      padding: 10px;
+      min-height: 45px;
+      }
+      .card {
+      width: 70px;
+      height: 105px;
+      margin-left: -45px;
+      }
+      .shuffle-button {
+      padding: 12px 25px;
+      font-size: 1em;
+      }
+      .card-image-container img {
+      max-width: 160px;
+      }
+      }
+      @media (max-width: 480px) {
+      .card-container {
+      width: calc(100% - 20px);
+      padding: 15px;
+      min-height: 140px;
+      }
+      .card {
+      width: 75px;
+      height: 112px;
+      margin-left: -45px;
+      }
+      }
+      @media (max-width: 320px) {
+      .card-container {
+      padding: 10px;
+      min-height: 100px;
+      }
+      .card {
+      width: 60px;
+      height: 90px;
+      margin-left: -35px;
+      }
+      }
+      .api-container {
+      width: 100%;
+      max-width: 768px;
+      margin-bottom: 30px;
+      padding: 0 15px;
+      box-sizing: border-box;
+      }
+      .api-label {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 1.1em;
+      color: #9e9e9e;
+      }
+      .api-input-wrapper {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      }
+      #api-key {
+      flex: 1;
+      padding: 12px 15px;
+      border: 1px solid #333;
+      border-radius: 8px;
+      background: #2a2a2a;
+      color: #fff;
+      font-size: 1em;
+      font-family: inherit;
+      }
+      .api-link {
+      color: #4a9eff;
+      text-decoration: none;
+      padding: 12px 15px;
+      border-radius: 8px;
+      background: #2a2a2a;
+      border: 1px solid #333;
+      transition: all 0.3s ease;
+      }
+      .api-link:hover {
+      background: #333;
+      color: #5aafff;
+      }
+      @media (max-width: 768px) {
+      .api-container {
+      padding: 0 10px;
+      }
+      .api-label {
+      font-size: 1em;
+      }
+      #api-key {
+      padding: 10px 12px;
+      }
+      .api-link {
+      padding: 10px 12px;
+      }
+      }
+      /* Add markdown styling */
+      .card-meaning {
+      line-height: 1.6;
+      color: #e0e0e0;
+      }
+      .card-meaning h1,
+      .card-meaning h2,
+      .card-meaning h3 {
+      color: #fff;
+      margin-top: 1em;
+      margin-bottom: 0.5em;
+      }
+      .card-meaning p {
+      margin-bottom: 1em;
+      }
+      .card-meaning strong {
+      color: #fff;
+      }
+      .card-meaning em {
+      color: #b8b8b8;
+      }
+      .card-meaning ul,
+      .card-meaning ol {
+      padding-left: 1.5em;
+      margin-bottom: 1em;
+      }
+      .card-meaning li {
+      margin-bottom: 0.5em;
+      }
+      .card-meaning blockquote {
+      border-left: 3px solid #444;
+      padding-left: 1em;
+      margin-left: 0;
+      color: #b8b8b8;
+      }
+      .result-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      }
+      .selected-card {
+      background: rgba(42, 42, 42, 0.9);
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+      }
+      .selected-card h2 {
+      color: #fff;
+      margin-bottom: 15px;
+      }
+      .card-meaning {
+      grid-column: 1 / -1; /* Make it span all columns */
+      background: rgba(42, 42, 42, 0.9);
+      padding: 30px;
+      border-radius: 15px;
+      margin-top: 20px;
+      text-align: left;
+      }
+      @media (max-width: 768px) {
+      .result-grid {
+      grid-template-columns: 1fr;
+      gap: 15px;
+      }
+      .card-meaning {
+      margin-top: 15px;
+      }
+      }
+      @media (min-width: 768px) {
+      .result-grid {
+      flex-direction: row;
+      justify-content: space-between;
+      }
+      .selected-card {
+      flex: 1;
+      }
+      }
+      .instruction-text {
+      text-align: center;
+      color: #9e9e9e;
+      font-size: 1.1em;
+      margin: 20px 0;
+      font-weight: 300;
+      }
+      @media (max-width: 768px) {
+      .instruction-text {
+      font-size: 1em;
+      margin: 15px 0;
+      }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>🔮 Tarot Reading</h1>
+    </div>
+    <!-- <div class="api-container">
+<label for="api-key" class="api-label">Gemini API Key:</label>
+<div class="api-input-wrapper">
+<input type="text" id="api-key" placeholder="Enter your Gemini API key...">
+<a href="https://aistudio.google.com/apikey" target="_blank" class="api-link">Get API Key</a>
+</div>
+</div> -->
+    <div class="question-container">
+      <label for="question" class="question-label"
+        >What question seeks answers in the cards?</label
+      >
+      <textarea
+        id="question"
+        placeholder="Enter your question here..."
+      ></textarea>
+    </div>
+    <div class="option-container">
+      <label class="reverse-option">
+        <input type="checkbox" checked id="allowReverse" /> Allow Reversed Cards
+        (ကဒ်ပြောင်းပြန် ခွင့်ပြုသည်)
+      </label>
+    </div>
+    <button id="shuffleButton" class="shuffle-button">
+      Shuffle & Draw Cards
+    </button>
+    <p class="instruction-text">Please select three card (ကဒ် ၃ ကဒ် ရွေးပါ)</p>
+    <div id="result" class="selected-card" style="display: none"></div>
+    <div class="card-container" id="cardContainer"></div>
+    <div class="result-grid">
+      <div id="past" class="selected-card" style="display: none"></div>
+      <div id="present" class="selected-card" style="display: none"></div>
+      <div id="future" class="selected-card" style="display: none"></div>
+      <div id="card-meaning" class="card-meaning" style="display: none"></div>
+    </div>
+    <script>
+      var names = [
+        "0. The Fool",
+        "1. The Magician",
+        "2. The High Priestess",
+        "3. The Empress",
+        "4. The Emperor",
+        "5. The Hierophant",
+        "6. The Lovers",
+        "7. The Chariot",
+        "8. Strength",
+        "9. The Hermit",
+        "10. The Wheel of Fortune",
+        "11. Justice",
+        "12. The Hanged Man",
+        "13. Death",
+        "14. Temperance",
+        "15. The Devil",
+        "16. The Tower",
+        "17. The Star",
+        "18. The Moon",
+        "19. The Sun",
+        "20. Judgement",
+        "22. The World",
+        "Two of Cups",
+        "Three of Cups",
+        "Four of Cups",
+        "Five of Cups",
+        "Six of Cups",
+        "Seven of Cups",
+        "Eight of Cups",
+        "Nine of Cups",
+        "Ten of Cups",
+        "Ace of Cups",
+        "King of Cups",
+        "Knight of Cups",
+        "Page of Cups",
+        "Queen of Cups",
+        "Two of Pentacles",
+        "Three of Pentacles",
+        "Four of Pentacles",
+        "Five of Pentacles",
+        "Six of Pentacles",
+        "Seven of Pentacles",
+        "Eight of Pentacles",
+        "Nine of Pentacles",
+        "Ten of Pentacles",
+        "Ace of Pentacles",
+        "King of Pentacles",
+        "Knight of Pentacles",
+        "Page of Pentacles",
+        "Queen of Pentacles",
+        "Two of Swords",
+        "Three of Swords",
+        "Four of Swords",
+        "Five of Swords",
+        "Six of Swords",
+        "Seven of Swords",
+        "Eight of Swords",
+        "Nine of Swords",
+        "Ten of Swords",
+        "Ace of Swords",
+        "King of Swords",
+        "Knight of Swords",
+        "Page of Swords",
+        "Queen of Swords",
+        "Two of Wands",
+        "Three of Wands",
+        "Four of Wands",
+        "Five of Wands",
+        "Six of Wands",
+        "Seven of Wands",
+        "Eight of Wands",
+        "Nine of Wands",
+        "Ten of Wands",
+        "Ace of Wands",
+        "King of Wands",
+        "Knight of Wands",
+        "Page of Wands",
+        "Queen of Wands",
+      ];
+      var images = [
+        "ar00.jpg",
+        "ar01.jpg",
+        "ar02.jpg",
+        "ar03.jpg",
+        "ar04.jpg",
+        "ar05.jpg",
+        "ar06.jpg",
+        "ar07.jpg",
+        "ar08.jpg",
+        "ar09.jpg",
+        "ar10.jpg",
+        "ar11.jpg",
+        "ar12.jpg",
+        "ar13.jpg",
+        "ar14.jpg",
+        "ar15.jpg",
+        "ar16.jpg",
+        "ar17.jpg",
+        "ar18.jpg",
+        "ar19.jpg",
+        "ar20.jpg",
+        "ar21.jpg",
+        "cu02.jpg",
+        "cu03.jpg",
+        "cu04.jpg",
+        "cu05.jpg",
+        "cu06.jpg",
+        "cu07.jpg",
+        "cu08.jpg",
+        "cu09.jpg",
+        "cu10.jpg",
+        "cuac.jpg",
+        "cuki.jpg",
+        "cukn.jpg",
+        "cupa.jpg",
+        "cuqu.jpg",
+        "pe02.jpg",
+        "pe03.jpg",
+        "pe04.jpg",
+        "pe05.jpg",
+        "pe06.jpg",
+        "pe07.jpg",
+        "pe08.jpg",
+        "pe09.jpg",
+        "pe10.jpg",
+        "peac.jpg",
+        "peki.jpg",
+        "pekn.jpg",
+        "pepa.jpg",
+        "pequ.jpg",
+        "sw02.jpg",
+        "sw03.jpg",
+        "sw04.jpg",
+        "sw05.jpg",
+        "sw06.jpg",
+        "sw07.jpg",
+        "sw08.jpg",
+        "sw09.jpg",
+        "sw10.jpg",
+        "swac.jpg",
+        "swki.jpg",
+        "swkn.jpg",
+        "swpa.jpg",
+        "swqu.jpg",
+        "wa02.jpg",
+        "wa03.jpg",
+        "wa04.jpg",
+        "wa05.jpg",
+        "wa06.jpg",
+        "wa07.jpg",
+        "wa08.jpg",
+        "wa09.jpg",
+        "wa10.jpg",
+        "waac.jpg",
+        "waki.jpg",
+        "wakn.jpg",
+        "wapa.jpg",
+        "waqu.jpg",
+      ];
+      const originalImages = [
+        "ar00.jpg",
+        "ar01.jpg",
+        "ar02.jpg",
+        "ar03.jpg",
+        "ar04.jpg",
+        "ar05.jpg",
+        "ar06.jpg",
+        "ar07.jpg",
+        "ar08.jpg",
+        "ar09.jpg",
+        "ar10.jpg",
+        "ar11.jpg",
+        "ar12.jpg",
+        "ar13.jpg",
+        "ar14.jpg",
+        "ar15.jpg",
+        "ar16.jpg",
+        "ar17.jpg",
+        "ar18.jpg",
+        "ar19.jpg",
+        "ar20.jpg",
+        "ar21.jpg",
+        "cu02.jpg",
+        "cu03.jpg",
+        "cu04.jpg",
+        "cu05.jpg",
+        "cu06.jpg",
+        "cu07.jpg",
+        "cu08.jpg",
+        "cu09.jpg",
+        "cu10.jpg",
+        "cuac.jpg",
+        "cuki.jpg",
+        "cukn.jpg",
+        "cupa.jpg",
+        "cuqu.jpg",
+        "pe02.jpg",
+        "pe03.jpg",
+        "pe04.jpg",
+        "pe05.jpg",
+        "pe06.jpg",
+        "pe07.jpg",
+        "pe08.jpg",
+        "pe09.jpg",
+        "pe10.jpg",
+        "peac.jpg",
+        "peki.jpg",
+        "pekn.jpg",
+        "pepa.jpg",
+        "pequ.jpg",
+        "sw02.jpg",
+        "sw03.jpg",
+        "sw04.jpg",
+        "sw05.jpg",
+        "sw06.jpg",
+        "sw07.jpg",
+        "sw08.jpg",
+        "sw09.jpg",
+        "sw10.jpg",
+        "swac.jpg",
+        "swki.jpg",
+        "swkn.jpg",
+        "swpa.jpg",
+        "swqu.jpg",
+        "wa02.jpg",
+        "wa03.jpg",
+        "wa04.jpg",
+        "wa05.jpg",
+        "wa06.jpg",
+        "wa07.jpg",
+        "wa08.jpg",
+        "wa09.jpg",
+        "wa10.jpg",
+        "waac.jpg",
+        "waki.jpg",
+        "wakn.jpg",
+        "wapa.jpg",
+        "waqu.jpg",
+      ];
+      const cardContainer = document.getElementById("cardContainer");
+      const resultDiv = document.getElementById("result");
+      let selectedCards = {
+        past: null,
+        present: null,
+        future: null,
+      };
+      let selectedIndices = new Set(); // Add this line after your selectedCards declaration
+      function shuffleArray(array) {
+        let currentIndex = array.length,
+          randomIndex;
+        const originalIndices = Array.from(
+          { length: array.length },
+          (_, i) => i
+        );
+        while (currentIndex != 0) {
+          randomIndex = Math.floor(Math.random() * currentIndex);
+          currentIndex--;
+          [array[currentIndex], array[randomIndex]] = [
+            array[randomIndex],
+            array[currentIndex],
+          ];
+          [originalIndices[currentIndex], originalIndices[randomIndex]] = [
+            originalIndices[randomIndex],
+            originalIndices[currentIndex],
+          ];
+        }
+        return originalIndices;
+      }
+      function validateQuestion() {
+        const question = document.getElementById("question").value.trim();
+        if (!question) {
+          alert("Please enter your question before selecting a card.");
+          return false;
+        }
+        return true;
+      }
+      // Remove the old wheel event handler and add these new event listeners
+      cardContainer.addEventListener(
+        "wheel",
+        function (e) {
+          e.preventDefault();
+          const multiplier = 2.5; // Increase scroll speed
+          const deltaX =
+            Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+          cardContainer.scrollBy({
+            left: deltaX * multiplier,
+            behavior: "auto", // Change from 'smooth' to 'auto' for faster response
+          });
+        },
+        { passive: false }
+      );
+      // Add trackpad gesture handling
+      let isScrolling = false;
+      let startX;
+      let scrollLeft;
+      cardContainer.addEventListener("mousedown", (e) => {
+        isScrolling = true;
+        cardContainer.style.cursor = "grabbing";
+        startX = e.pageX - cardContainer.offsetLeft;
+        scrollLeft = cardContainer.scrollLeft;
+      });
+      cardContainer.addEventListener("mouseleave", () => {
+        isScrolling = false;
+        cardContainer.style.cursor = "grab";
+      });
+      cardContainer.addEventListener("mouseup", () => {
+        isScrolling = false;
+        cardContainer.style.cursor = "grab";
+      });
+      cardContainer.addEventListener("mousemove", (e) => {
+        if (!isScrolling) return;
+        e.preventDefault();
+        const x = e.pageX - cardContainer.offsetLeft;
+        const walk = (x - startX) * 3; // Increase multiplier from 2 to 3
+        requestAnimationFrame(() => {
+          cardContainer.scrollLeft = scrollLeft - walk;
+        });
+      });
+      async function callOpenAi(
+        question,
+        past,
+        present,
+        future,
+        past_reverse,
+        present_reverse,
+        future_reverse
+      ) {
+        const cardMeaningElement = document.getElementById("card-meaning");
+        cardMeaningElement.style.display = "block";
+        cardMeaningElement.innerHTML = "Loading...";
+        // var apiKey = document.getElementById('api-key').value;
+        // if (!apiKey) {
+        // apiKey = "";
+        // return;
+        // }
+        try {
+          const response = await fetch(
+            "https://tarot-gemini.vercel.app/api/threecard",
+            {
+              method: "POST",
+              mode: "cors",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                apiKey: "",
+                past: past,
+                past_reverse: past_reverse,
+                present: present,
+                present_reverse: present_reverse,
+                future: future,
+                future_reverse: future_reverse,
+                question: question,
+              }),
+            }
+          );
+          const reader = response.body.getReader();
+          let result = "";
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            // Convert the Uint8Array to text
+            const chunk = new TextDecoder().decode(value);
+            result += chunk;
+            // Parse and display the accumulated markdown content
+            cardMeaningElement.innerHTML = marked.parse(
+              JSON.parse(result).response
+            );
+          }
+        } catch (error) {
+          cardMeaningElement.innerHTML =
+            "An error occurred while fetching the response.";
+          console.error("Error:", error);
+        }
+      }
+      function createCards() {
+        // Reset selected indices when creating new cards
+        selectedIndices.clear();
+        cardContainer.innerHTML = "";
+        document.getElementById("past").innerHTML = "";
+        document.getElementById("present").innerHTML = "";
+        document.getElementById("future").innerHTML = "";
+        document.getElementById("past").style.display = "none";
+        document.getElementById("present").style.display = "none";
+        document.getElementById("future").style.display = "none";
+        document.getElementById("card-meaning").style.display = "none";
+        cardContainer.style.display = "flex";
+        const originalIndices = shuffleArray(images);
+        const allowReverse = document.getElementById("allowReverse").checked;
+        images.forEach((image, index) => {
+          const img = document.createElement("img");
+          img.src = "./images/_cover.png";
+          img.className = "card spreading";
+          // Add random rotation if reverse is allowed
+          if (allowReverse && Math.random() > 0.5) {
+            img.classList.add("reversed");
+          }
+          img.style.animationDelay = `${index * 0.05}s`;
+          img.alt = "Tarot card back";
+          img.dataset.index = index;
+          img.dataset.originalIndex = originalIndices[index];
+          img.addEventListener("click", () => {
+            if (!validateQuestion()) return;
+            const currentIndex = parseInt(img.dataset.originalIndex);
+            // Check if card is already selected
+            if (selectedIndices.has(currentIndex)) {
+              return; // Don't allow selecting the same card twice
+            }
+            const isReversed = img.classList.contains("reversed");
+            const cardName = names[currentIndex];
+            // Determine which position to fill
+            let position;
+            if (!selectedCards.past) position = "past";
+            else if (!selectedCards.present) position = "present";
+            else if (!selectedCards.future) position = "future";
+            else return; // All cards selected
+            // Add to selected indices
+            selectedIndices.add(currentIndex);
+            // Store selected card
+            selectedCards[position] = {
+              name: cardName,
+              image: originalImages[currentIndex],
+              isReversed: isReversed,
+            };
+            // Update display
+            updateCardDisplay(position);
+            img.style.opacity = "0.5";
+            img.style.pointerEvents = "none";
+            // If all cards are selected, show reading
+            if (
+              selectedCards.past &&
+              selectedCards.present &&
+              selectedCards.future
+            ) {
+              showReading();
+            }
+          });
+          // Add touch feedback
+          img.addEventListener("touchstart", () => {
+            img.style.opacity = "0.7";
+          });
+          img.addEventListener("touchend", () => {
+            img.style.opacity = "1";
+          });
+          cardContainer.appendChild(img);
+        });
+      }
+      function updateCardDisplay(position) {
+        const card = selectedCards[position];
+        const positionDiv = document.getElementById(position);
+        positionDiv.innerHTML = `
+<h2>${position.charAt(0).toUpperCase() + position.slice(1)}</h2>
+<div class="card-image-container">
+<img src="./images/${card.image}"
+alt="${card.name}"
+class="${card.isReversed ? "reversed" : ""}">
+<div class="card-title">
+${card.name}
+${card.isReversed ? " (Reversed)" : "(Upright)"}
+</div>
+</div>
+`;
+        positionDiv.style.display = "block";
+      }
+      function showReading() {
+        const question = document.getElementById("question").value;
+        cardContainer.style.display = "none";
+        callOpenAi(
+          question,
+          selectedCards.past.name,
+          selectedCards.present.name,
+          selectedCards.future.name,
+          selectedCards.past.isReversed,
+          selectedCards.present.isReversed,
+          selectedCards.future.isReversed
+        );
+      }
+      createCards();
+      document
+        .getElementById("shuffleButton")
+        .addEventListener("click", function () {
+          selectedCards = {
+            past: null,
+            present: null,
+            future: null,
+          };
+          selectedIndices.clear();
+          createCards();
+        });
+      // Add touch event handling
+      let touchStartX = 0;
+      let touchEndX = 0;
+      cardContainer.addEventListener(
+        "touchstart",
+        (e) => {
+          touchStartX = e.changedTouches[0].screenX;
+        },
+        false
+      );
+      cardContainer.addEventListener(
+        "touchend",
+        (e) => {
+          touchEndX = e.changedTouches[0].screenX;
+          handleSwipe();
+        },
+        false
+      );
+      // Update handleSwipe function with faster scroll speed
+      function handleSwipe() {
+        const difference = touchStartX - touchEndX;
+        const multiplier = 2.5; // Increase from 2 to 2.5
+        const scrollSpeed = 300; // Increase from 200 to 300
+        if (Math.abs(difference) > 20) {
+          // Reduce threshold from 50 to 20
+          cardContainer.scrollBy({
+            left: difference > 0 ? scrollSpeed : -scrollSpeed,
+            behavior: "auto", // Change from 'smooth' to 'auto'
+          });
+        }
+      }
+    </script>
+  </body>
+</html>

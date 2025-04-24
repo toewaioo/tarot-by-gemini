@@ -1,0 +1,14 @@
+{
+  "name": "tarot-by-gemini",
+  "scripts": {
+    "start": "vercel dev",
+    "deploy": "vercel"
+  },
+  "dependencies": {
+    "@google/genai": "^0.10.0",
+    "hono": "^4.7.7"
+  },
+  "devDependencies": {
+    "vercel": "^32.4.1"
+  }
+}
