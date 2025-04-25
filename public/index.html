@@ -7,508 +7,507 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
       body {
-      font-family: 'Helvetica Neue', sans-serif;
-      background: #1a1a1a;
-      color: #fff;
-      margin: 0;
-      padding: 20px;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+        font-family: "Helvetica Neue", sans-serif;
+        background: #1a1a1a;
+        color: #fff;
+        margin: 0;
+        padding: 20px;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
       }
       .header {
-      margin-bottom: 40px;
-      text-align: center;
+        margin-bottom: 40px;
+        text-align: center;
       }
       .header h1 {
-      font-size: 2.5em;
-      font-weight: 300;
-      color: #fff;
-      margin-bottom: 10px;
+        font-size: 2.5em;
+        font-weight: 300;
+        color: #fff;
+        margin-bottom: 10px;
       }
       .question-container {
-      width: 100%;
-      max-width: 768px;
-      margin-bottom: 30px;
-      padding: 0 15px;
-      box-sizing: border-box;
+        width: 100%;
+        max-width: 768px;
+        margin-bottom: 30px;
+        padding: 0 15px;
+        box-sizing: border-box;
       }
       .question-label {
-      display: block;
-      margin-bottom: 10px;
-      font-size: 1.1em;
-      color: #9e9e9e;
+        display: block;
+        margin-bottom: 10px;
+        font-size: 1.1em;
+        color: #9e9e9e;
       }
       #question {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 15px;
-      border: 1px solid #333;
-      border-radius: 8px;
-      background: #2a2a2a;
-      color: #fff;
-      font-size: 1.1em;
-      resize: vertical;
-      min-height: 60px;
-      margin-bottom: 20px;
-      font-family: inherit;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 15px;
+        border: 1px solid #333;
+        border-radius: 8px;
+        background: #2a2a2a;
+        color: #fff;
+        font-size: 1.1em;
+        resize: vertical;
+        min-height: 60px;
+        margin-bottom: 20px;
+        font-family: inherit;
       }
       .card-container {
-      display: flex;
-      flex-wrap: nowrap;
-      gap: 2px;
-      padding: 20px 40px;
-      overflow-x: scroll;
-      width: 90%;
-      max-width: 800px;
-      min-height: 180px;
-      align-items: center;
-      background: rgba(42, 42, 42, 0.7);
-      border-radius: 20px;
-      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-      margin: 20px auto;
-      -webkit-overflow-scrolling: touch;
-      scroll-behavior: smooth;
-      cursor: grab;
-      overscroll-behavior-x: contain;
-      will-change: transform, scroll-position; /* Optimize scroll performance */
-      scroll-snap-type: x proximity; /* Improve scroll precision */
-      -webkit-overflow-scrolling: auto; /* Better performance than 'touch' */
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 2px;
+        padding: 20px 40px;
+        overflow-x: scroll;
+        width: 90%;
+        max-width: 800px;
+        min-height: 180px;
+        align-items: center;
+        background: rgba(42, 42, 42, 0.7);
+        border-radius: 20px;
+        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        margin: 20px auto;
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+        cursor: grab;
+        overscroll-behavior-x: contain;
+        will-change: transform, scroll-position; /* Optimize scroll performance */
+        scroll-snap-type: x proximity; /* Improve scroll precision */
+        -webkit-overflow-scrolling: auto; /* Better performance than 'touch' */
       }
       .card-container:active {
-      cursor: grabbing;
+        cursor: grabbing;
       }
       .card-container::-webkit-scrollbar {
-      display: none;
+        display: none;
       }
       .card {
-      width: 90px;
-      height: 140px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      flex-shrink: 0;
-      margin-left: -60px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-      object-fit: cover;
-      filter: brightness(0.9);
-      border: 1px solid #333;
-      scroll-snap-align: start;
-      backface-visibility: hidden; /* Reduce repaint */
-      transform: translateZ(0); /* GPU acceleration */
+        width: 90px;
+        height: 140px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+        margin-left: -60px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        object-fit: cover;
+        filter: brightness(0.9);
+        border: 1px solid #333;
+        scroll-snap-align: start;
+        backface-visibility: hidden; /* Reduce repaint */
+        transform: translateZ(0); /* GPU acceleration */
       }
       .card:first-child {
-      margin-left: 0;
+        margin-left: 0;
       }
       .card:hover {
-      transform: translateY(-20px) scale(1.15);
-      filter: brightness(1.1);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+        transform: translateY(-20px) scale(1.15);
+        filter: brightness(1.1);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
       }
       .selected-card {
-      max-width: 768px;
-      margin: 20px auto;
-      background: rgba(42, 42, 42, 0.9);
-      padding: 30px;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      text-align: center;
+        max-width: 768px;
+        margin: 20px auto;
+        background: rgba(42, 42, 42, 0.9);
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        text-align: center;
       }
       .selected-card img {
-      border-radius: 15px;
-      margin-bottom: 20px;
+        border-radius: 15px;
+        margin-bottom: 20px;
       }
       .result-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
       }
       .card-image-container {
-      text-align: center;
+        text-align: center;
       }
       .card-image-container img {
-      max-width: 300px;
-      height: auto;
-      border-radius: 15px;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-      border: 1px solid #333;
+        max-width: 300px;
+        height: auto;
+        border-radius: 15px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        border: 1px solid #333;
       }
       .card-image-container .card-title {
-      font-size: 2em;
-      color: #fff;
-      margin-bottom: 20px;
+        font-size: 2em;
+        color: #fff;
+        margin-bottom: 20px;
       }
       .card-details {
-      text-align: left;
-      padding: 20px;
+        text-align: left;
+        padding: 20px;
       }
       .card-details .question {
-      color: #9e9e9e;
-      font-size: 1.2em;
-      margin-bottom: 30px;
-      padding-bottom: 15px;
-      border-bottom: 1px solid #444;
+        color: #9e9e9e;
+        font-size: 1.2em;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #444;
       }
       @media (max-width: 768px) {
-      .result-grid {
-      grid-template-columns: 1fr;
-      }
+        .result-grid {
+          grid-template-columns: 1fr;
+        }
       }
       @keyframes stackCards {
-      0% {
-      transform: translateX(0) rotate(0deg);
-      }
-      100% {
-      transform: translateX(50%) rotate(5deg);
-      }
+        0% {
+          transform: translateX(0) rotate(0deg);
+        }
+        100% {
+          transform: translateX(50%) rotate(5deg);
+        }
       }
       @keyframes spreadCards {
-      0% {
-      transform: translateX(50%) rotate(5deg);
-      opacity: 0;
-      }
-      100% {
-      transform: translateX(0) rotate(0deg);
-      opacity: 1;
-      }
+        0% {
+          transform: translateX(50%) rotate(5deg);
+          opacity: 0;
+        }
+        100% {
+          transform: translateX(0) rotate(0deg);
+          opacity: 1;
+        }
       }
       .stacking {
-      animation: stackCards 0.5s forwards;
+        animation: stackCards 0.5s forwards;
       }
       .spreading {
-      animation: spreadCards 0.5s forwards;
+        animation: spreadCards 0.5s forwards;
       }
       .shuffle-button {
-      background: #4a4a4a;
-      color: #fff;
-      border: none;
-      padding: 15px 30px;
-      border-radius: 25px;
-      font-size: 1.1em;
-      cursor: pointer;
-      transition: all 0.3s ease;
+        background: #4a4a4a;
+        color: #fff;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 25px;
+        font-size: 1.1em;
+        cursor: pointer;
+        transition: all 0.3s ease;
       }
       .shuffle-button:hover {
-      background: #666;
-      transform: translateY(-2px);
+        background: #666;
+        transform: translateY(-2px);
       }
       .option-container {
-      margin-bottom: 20px;
+        margin-bottom: 20px;
       }
       .reverse-option {
-      color: #9e9e9e;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+        color: #9e9e9e;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
       .reverse-option input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      cursor: pointer;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
       }
       .card.reversed {
-      transform: rotate(180deg);
+        transform: rotate(180deg);
       }
       .card.reversed:hover {
-      transform: translateY(-20px) scale(1.15) rotate(180deg);
+        transform: translateY(-20px) scale(1.15) rotate(180deg);
       }
       .selected-card img.reversed {
-      transform: rotate(180deg);
+        transform: rotate(180deg);
       }
       /* Update existing card container for mobile */
       .card-container {
-      width: calc(100% - 40px);
-      padding: 20px;
-      gap: 0;
-      min-height: 160px;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      /* for smooth scrolling on iOS */
-      scroll-behavior: smooth;
-      position: relative;
-      /* Added for swipe hint positioning */
-      touch-action: pan-x; /* Only allow horizontal touch actions */
-      overflow-y: hidden; /* Prevent vertical scrolling */
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior-y: none; /* Prevent bounce effect on vertical scroll */
-      
+        width: calc(100% - 40px);
+        padding: 20px;
+        gap: 0;
+        min-height: 160px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        /* for smooth scrolling on iOS */
+        scroll-behavior: smooth;
+        position: relative;
+        /* Added for swipe hint positioning */
+        touch-action: pan-x; /* Only allow horizontal touch actions */
+        overflow-y: hidden; /* Prevent vertical scrolling */
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: none; /* Prevent bounce effect on vertical scroll */
       }
       .card {
-      width: 80px;
-      height: 120px;
-      margin-left: -50px;
-      touch-action: pan-x; /* Only allow horizontal touch actions on cards */
-      user-select: none; /* Prevent text selection during touch */
-      -webkit-user-select: none;
+        width: 80px;
+        height: 120px;
+        margin-left: -50px;
+        touch-action: pan-x; /* Only allow horizontal touch actions on cards */
+        user-select: none; /* Prevent text selection during touch */
+        -webkit-user-select: none;
       }
       /* Update media queries for mobile */
       @media (max-width: 768px) {
-      body {
-      padding: 10px;
-      }
-      .header h1 {
-      font-size: 2em;
-      }
-      .question-container {
-      padding: 0 10px;
-      margin-bottom: 20px;
-      }
-      .question-label {
-      font-size: 1em;
-      }
-      #question {
-      padding: 12px;
-      font-size: 1em;
-      min-height: 50px;
-      }
-      .option-container {
-      padding: 0 10px;
-      margin-bottom: 15px;
-      }
-      .reverse-option {
-      font-size: 0.9em;
-      }
-      .card-container {
-      width: calc(100% - 20px);
-      padding: 15px;
-      min-height: 140px;
-      }
-      .result-grid {
-      grid-template-columns: 1fr;
-      gap: 15px;
-      }
-      .card-image-container img {
-      max-width: 200px;
-      }
-      .card-image-container .card-title {
-      font-size: 1.5em;
-      }
-      .card-details {
-      padding: 15px;
-      }
-      .card-details .question {
-      font-size: 1em;
-      }
-      /* Adjust card hover effect for touch devices */
-      .card:hover {
-      transform: translateY(-10px) scale(1.1);
-      }
-      .card.reversed:hover {
-      transform: translateY(-10px) scale(1.1) rotate(180deg);
-      }
-      /* Add touch scrolling hint */
-      .card-container::after {
-      content: '← Swipe →';
-      position: absolute;
-      bottom: -25px;
-      left: 50%;
-      transform: translateX(-50%);
-      color: #666;
-      font-size: 0.9em;
-      white-space: nowrap;
-      width: 100%;
-      text-align: center;
-      pointer-events: none;
-      }
+        body {
+          padding: 10px;
+        }
+        .header h1 {
+          font-size: 2em;
+        }
+        .question-container {
+          padding: 0 10px;
+          margin-bottom: 20px;
+        }
+        .question-label {
+          font-size: 1em;
+        }
+        #question {
+          padding: 12px;
+          font-size: 1em;
+          min-height: 50px;
+        }
+        .option-container {
+          padding: 0 10px;
+          margin-bottom: 15px;
+        }
+        .reverse-option {
+          font-size: 0.9em;
+        }
+        .card-container {
+          width: calc(100% - 20px);
+          padding: 15px;
+          min-height: 140px;
+        }
+        .result-grid {
+          grid-template-columns: 1fr;
+          gap: 15px;
+        }
+        .card-image-container img {
+          max-width: 200px;
+        }
+        .card-image-container .card-title {
+          font-size: 1.5em;
+        }
+        .card-details {
+          padding: 15px;
+        }
+        .card-details .question {
+          font-size: 1em;
+        }
+        /* Adjust card hover effect for touch devices */
+        .card:hover {
+          transform: translateY(-10px) scale(1.1);
+        }
+        .card.reversed:hover {
+          transform: translateY(-10px) scale(1.1) rotate(180deg);
+        }
+        /* Add touch scrolling hint */
+        .card-container::after {
+          content: "← Swipe →";
+          position: absolute;
+          bottom: -25px;
+          left: 50%;
+          transform: translateX(-50%);
+          color: #666;
+          font-size: 0.9em;
+          white-space: nowrap;
+          width: 100%;
+          text-align: center;
+          pointer-events: none;
+        }
       }
       /* Add specific styles for very small screens */
       @media (max-width: 380px) {
-      .question-container {
-      padding: 0 8px;
-      }
-      #question {
-      padding: 10px;
-      min-height: 45px;
-      }
-      .card {
-      width: 70px;
-      height: 105px;
-      margin-left: -45px;
-      }
-      .shuffle-button {
-      padding: 12px 25px;
-      font-size: 1em;
-      }
-      .card-image-container img {
-      max-width: 160px;
-      }
+        .question-container {
+          padding: 0 8px;
+        }
+        #question {
+          padding: 10px;
+          min-height: 45px;
+        }
+        .card {
+          width: 70px;
+          height: 105px;
+          margin-left: -45px;
+        }
+        .shuffle-button {
+          padding: 12px 25px;
+          font-size: 1em;
+        }
+        .card-image-container img {
+          max-width: 160px;
+        }
       }
       @media (max-width: 480px) {
-      .card-container {
-      width: calc(100% - 20px);
-      padding: 15px;
-      min-height: 140px;
-      }
-      .card {
-      width: 75px;
-      height: 112px;
-      margin-left: -45px;
-      }
+        .card-container {
+          width: calc(100% - 20px);
+          padding: 15px;
+          min-height: 140px;
+        }
+        .card {
+          width: 75px;
+          height: 112px;
+          margin-left: -45px;
+        }
       }
       @media (max-width: 320px) {
-      .card-container {
-      padding: 10px;
-      min-height: 100px;
-      }
-      .card {
-      width: 60px;
-      height: 90px;
-      margin-left: -35px;
-      }
+        .card-container {
+          padding: 10px;
+          min-height: 100px;
+        }
+        .card {
+          width: 60px;
+          height: 90px;
+          margin-left: -35px;
+        }
       }
       .api-container {
-      width: 100%;
-      max-width: 768px;
-      margin-bottom: 30px;
-      padding: 0 15px;
-      box-sizing: border-box;
+        width: 100%;
+        max-width: 768px;
+        margin-bottom: 30px;
+        padding: 0 15px;
+        box-sizing: border-box;
       }
       .api-label {
-      display: block;
-      margin-bottom: 10px;
-      font-size: 1.1em;
-      color: #9e9e9e;
+        display: block;
+        margin-bottom: 10px;
+        font-size: 1.1em;
+        color: #9e9e9e;
       }
       .api-input-wrapper {
-      display: flex;
-      gap: 10px;
-      align-items: center;
+        display: flex;
+        gap: 10px;
+        align-items: center;
       }
       #api-key {
-      flex: 1;
-      padding: 12px 15px;
-      border: 1px solid #333;
-      border-radius: 8px;
-      background: #2a2a2a;
-      color: #fff;
-      font-size: 1em;
-      font-family: inherit;
+        flex: 1;
+        padding: 12px 15px;
+        border: 1px solid #333;
+        border-radius: 8px;
+        background: #2a2a2a;
+        color: #fff;
+        font-size: 1em;
+        font-family: inherit;
       }
       .api-link {
-      color: #4a9eff;
-      text-decoration: none;
-      padding: 12px 15px;
-      border-radius: 8px;
-      background: #2a2a2a;
-      border: 1px solid #333;
-      transition: all 0.3s ease;
+        color: #4a9eff;
+        text-decoration: none;
+        padding: 12px 15px;
+        border-radius: 8px;
+        background: #2a2a2a;
+        border: 1px solid #333;
+        transition: all 0.3s ease;
       }
       .api-link:hover {
-      background: #333;
-      color: #5aafff;
+        background: #333;
+        color: #5aafff;
       }
       @media (max-width: 768px) {
-      .api-container {
-      padding: 0 10px;
-      }
-      .api-label {
-      font-size: 1em;
-      }
-      #api-key {
-      padding: 10px 12px;
-      }
-      .api-link {
-      padding: 10px 12px;
-      }
+        .api-container {
+          padding: 0 10px;
+        }
+        .api-label {
+          font-size: 1em;
+        }
+        #api-key {
+          padding: 10px 12px;
+        }
+        .api-link {
+          padding: 10px 12px;
+        }
       }
       /* Add markdown styling */
       .card-meaning {
-      line-height: 1.6;
-      color: #e0e0e0;
+        line-height: 1.6;
+        color: #e0e0e0;
       }
       .card-meaning h1,
       .card-meaning h2,
       .card-meaning h3 {
-      color: #fff;
-      margin-top: 1em;
-      margin-bottom: 0.5em;
+        color: #fff;
+        margin-top: 1em;
+        margin-bottom: 0.5em;
       }
       .card-meaning p {
-      margin-bottom: 1em;
+        margin-bottom: 1em;
       }
       .card-meaning strong {
-      color: #fff;
+        color: #fff;
       }
       .card-meaning em {
-      color: #b8b8b8;
+        color: #b8b8b8;
       }
       .card-meaning ul,
       .card-meaning ol {
-      padding-left: 1.5em;
-      margin-bottom: 1em;
+        padding-left: 1.5em;
+        margin-bottom: 1em;
       }
       .card-meaning li {
-      margin-bottom: 0.5em;
+        margin-bottom: 0.5em;
       }
       .card-meaning blockquote {
-      border-left: 3px solid #444;
-      padding-left: 1em;
-      margin-left: 0;
-      color: #b8b8b8;
+        border-left: 3px solid #444;
+        padding-left: 1em;
+        margin-left: 0;
+        color: #b8b8b8;
       }
       .result-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
       }
       .selected-card {
-      background: rgba(42, 42, 42, 0.9);
-      padding: 20px;
-      border-radius: 15px;
-      text-align: center;
+        background: rgba(42, 42, 42, 0.9);
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
       }
       .selected-card h2 {
-      color: #fff;
-      margin-bottom: 15px;
+        color: #fff;
+        margin-bottom: 15px;
       }
       .card-meaning {
-      grid-column: 1 / -1; /* Make it span all columns */
-      background: rgba(42, 42, 42, 0.9);
-      padding: 30px;
-      border-radius: 15px;
-      margin-top: 20px;
-      text-align: left;
+        grid-column: 1 / -1; /* Make it span all columns */
+        background: rgba(42, 42, 42, 0.9);
+        padding: 30px;
+        border-radius: 15px;
+        margin-top: 20px;
+        text-align: left;
       }
       @media (max-width: 768px) {
-      .result-grid {
-      grid-template-columns: 1fr;
-      gap: 15px;
-      }
-      .card-meaning {
-      margin-top: 15px;
-      }
+        .result-grid {
+          grid-template-columns: 1fr;
+          gap: 15px;
+        }
+        .card-meaning {
+          margin-top: 15px;
+        }
       }
       @media (min-width: 768px) {
-      .result-grid {
-      flex-direction: row;
-      justify-content: space-between;
-      }
-      .selected-card {
-      flex: 1;
-      }
+        .result-grid {
+          flex-direction: row;
+          justify-content: space-between;
+        }
+        .selected-card {
+          flex: 1;
+        }
       }
       .instruction-text {
-      text-align: center;
-      color: #9e9e9e;
-      font-size: 1.1em;
-      margin: 20px 0;
-      font-weight: 300;
+        text-align: center;
+        color: #9e9e9e;
+        font-size: 1.1em;
+        margin: 20px 0;
+        font-weight: 300;
       }
       @media (max-width: 768px) {
-      .instruction-text {
-      font-size: 1em;
-      margin: 15px 0;
-      }
+        .instruction-text {
+          font-size: 1em;
+          margin: 15px 0;
+        }
       }
     </style>
   </head>
@@ -917,9 +916,7 @@
             const chunk = new TextDecoder().decode(value);
             result += chunk;
             // Parse and display the accumulated markdown content
-            cardMeaningElement.innerHTML = marked.parse(
-              JSON.parse(result).response
-            );
+            cardMeaningElement.innerHTML = marked.parse(result);
           }
         } catch (error) {
           cardMeaningElement.innerHTML =
